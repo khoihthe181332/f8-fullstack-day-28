@@ -161,7 +161,7 @@ loadMorePostBtn.addEventListener("click", () => {
 })
 
 // Hiển thị 5 post ngay khi tải trang
-handleShowPost();
+// handleShowPost();
 
 // Element bài 3
 const todoList = $(".todo-list");
@@ -172,13 +172,15 @@ const totalTodos = $("#total-todos");
 const completedTodos = $("#completed-todos");
 const incompleteTodos = $("#incomplete-todos");
 
+const filterBtn = $$(".filter-btn");
+
 function renderToDoList(data, userId) {
     const user = data.find(u => u.userId == userId);
 
     if (!user) {
         $("#todos-error").style.display = "block";
         $("#todos-error").innerHTML = `<p id="user-error-text">Không tìm thấy user với ID: ${userId}</p>`;
-
+        todoList.style.display = "none";
         setTimeout(() => {
             $("#todos-error").style.display = "none";
         }, 2000);
@@ -186,6 +188,7 @@ function renderToDoList(data, userId) {
     }
 
     // Render todo list
+    todoList.style.display = "grid";
     todoList.innerHTML = data.map(item => {
         return `<div class="todo-item ${item.completed ? "completed" : "incomplete"} " data-todo-id="${userId}" data-completed="">
                         <div class="todo-checkbox"></div>
@@ -199,30 +202,30 @@ function renderToDoList(data, userId) {
 
     // Hiển thị số Todos đã hoàn thành và chưa hoàn thành
     showTodosProgress(data);
+
+    if (isTodoListVisible()) {
+        enableFilterButtons();
+    } else {
+        disableFilterButtons();
+    }
+}
+
+function isTodoListVisible() {
+    return todoList.style.display !== "none" &&
+        getComputedStyle(todoList).display !== "none";
 }
 
 function showTotalTodos(data) {
-    let count = 0;
-    for (const index in data) {
-        count++;
-    }
-
-    totalTodos.innerText = count;
+    totalTodos.innerText = data.length;
     return;
 }
 
 function showTodosProgress(data) {
-    let count_todoCompleted = 0;
-    let count_todoIncomplete = 0;
-    for (let index in data) {
-        if (data[index].completed) {
-            count_todoCompleted++;
-            completedTodos.innerText = count_todoCompleted;
-        } else {
-            count_todoIncomplete++;
-            incompleteTodos.innerText = count_todoIncomplete;
-        }
-    }
+    const completed = data.filter(item => item.completed).length;
+    const incomplete = data.length - completed;
+
+    completedTodos.innerText = completed;
+    incompleteTodos.innerText = incomplete;
     return;
 }
 
@@ -233,7 +236,7 @@ function handleLoadTodoByUserId() {
     if (!userId) {
         $("#todos-error").style.display = "block";
         $("#todos-error").innerHTML = `<p id="todos-error-text">Vui lòng nhập UserID cần tìm từ 1-10</p>`
-
+        todoList.style.display = "none";
         setTimeout(() => {
             $("#todos-error").style.display = "none";
         }, 2000)
@@ -242,6 +245,7 @@ function handleLoadTodoByUserId() {
     };
 
     // Không lỗi thì render
+    todoList.style.display = "grid";
     sendRequest("GET", `https://jsonplaceholder.typicode.com/users/${userId}/todos`, (data) => {
         renderToDoList(data, userId);
     });
@@ -251,32 +255,42 @@ function handleLoadTodoByUserId() {
 
 loadTodoBtn.addEventListener("click", handleLoadTodoByUserId);
 
-$("#filter-all").addEventListener("click", function () {
-    const userId = Number(todoUserIdInput.value);
-    this.classList.add("active");
-    $("#filter-completed").classList.remove("active");
-    $("#filter-incomplete").classList.remove("active");
-    sendRequest("GET", `https://jsonplaceholder.typicode.com/users/${userId}/todos`, (data) => {
-        renderToDoList(data, userId);
-    });
+// Filter Todo list
+filterBtn.forEach(btn => {
+    btn.addEventListener("click", function (e) {
+        const userId = Number(todoUserIdInput.value);
+        const filter = e.target.dataset.filter;
+
+        filterBtn.forEach(btn => btn.classList.remove("active"));
+        this.classList.add("active");
+
+        let url = `https://jsonplaceholder.typicode.com/users/${userId}/todos`
+        if (filter === 'completed') {
+            url += "?completed=true";
+        } else if (filter === "incomplete") {
+            url += "?completed=false";
+        }
+
+        sendRequest("GET", url, (data) => {
+            renderToDoList(data, userId);
+        });
+    })
 });
 
-$("#filter-completed").addEventListener("click", function () {
-    const userId = Number(todoUserIdInput.value);
-    this.classList.add("active");
-    $("#filter-all").classList.remove("active");
-    $("#filter-incomplete").classList.remove("active");
-    sendRequest("GET", `https://jsonplaceholder.typicode.com/users/${userId}/todos?completed=true`, (data) => {
-        renderToDoList(data, userId);
+function disableFilterButtons() {
+    $$(".filter-btn").forEach(btn => {
+        btn.disabled = true;
+        btn.style.opacity = "0.5";
+        btn.style.cursor = "not-allowed";
     });
-})
+}
 
-$("#filter-incomplete").addEventListener("click", function () {
-    const userId = Number(todoUserIdInput.value);
-    this.classList.add("active");
-    $("#filter-completed").classList.remove("active");
-    $("#filter-all").classList.remove("active");
-    sendRequest("GET", `https://jsonplaceholder.typicode.com/users/${userId}/todos?completed=false`, (data) => {
-        renderToDoList(data, userId);
+function enableFilterButtons() {
+    $$(".filter-btn").forEach(btn => {
+        btn.disabled = false;
+        btn.style.opacity = "1";
+        btn.style.cursor = "pointer";
     });
-})
+}
+
+disableFilterButtons();
