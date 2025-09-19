@@ -79,9 +79,23 @@
 
                 <div id="posts-container" class="posts-container">
                     <!-- Posts sẽ được load động bằng JavaScript -->
+                    <div class="post-item" data-post-id=""> <!-- Template cho Post Item -->
+                        <h4 class="post-title"></h4>
+                        <p class="post-body"></p>
+                        <p class="post-author">Tác giả: <span class="author-name"></span></p>
+                        <button class="show-comments-btn" data-post-id="">Xem comments</button>
+                        <div class="comments-container" data-post-id="">
+                            <!-- Comments sẽ được load động -->
+                            <div class="comment-item"> <!-- Template cho Comment Item -->
+                                <div class="comment-author"></div>
+                                <div class="comment-email"></div>
+                                <div class="comment-body"></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <button id="load-more-posts-btn" class="load-more-btn" style="display: none">
+                <button id="load-more-posts-btn" class="load-more-btn" style="display: block">
                     Xem thêm post
                 </button>
             </section>
@@ -143,24 +157,6 @@
                 <p id="success-text">Thao tác thành công!</p>
             </div>
         </main>
-    </div>
-
-    <!-- Template cho Post Item -->
-    <div class="post-item" data-post-id="">
-        <h4 class="post-title"></h4>
-        <p class="post-body"></p>
-        <p class="post-author">Tác giả: <span class="author-name"></span></p>
-        <button class="show-comments-btn" data-post-id="">Xem comments</button>
-        <div class="comments-container" data-post-id="">
-            <!-- Comments sẽ được load động -->
-        </div>
-    </div>
-
-    <!-- Template cho Comment Item -->
-    <div class="comment-item">
-        <div class="comment-author"></div>
-        <div class="comment-email"></div>
-        <div class="comment-body"></div>
     </div>
 
     <!-- Template cho Todo Item -->

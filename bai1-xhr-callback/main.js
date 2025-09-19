@@ -88,28 +88,43 @@ function handleSearchUserByID() {
 searchUserBtn.addEventListener("click", handleSearchUserByID);
 
 // Element bài 2
-const postsList = $(".post-item");
-const commentItem = $(".comment-item");
-const showCommentBtn = $(".show-comments-btn");
+const postsList = $(".posts-container");
+const loadMorePostBtn = $(".load-more-btn");
 
 function renderPost(data) {
     postsList.innerHTML = data.map(post => {
-        return `<h4 class="post-title">${post.title}</h4>
+        return `<div class="post-item" data-post-id="${post.id}">
+        <h4 class="post-title">${post.title}</h4>
         <p class="post-body">${post.body}</p>
-        <p class="post-author">Tác giả: <span class="author-name">
-            ${post.id}
-        </span></p>
-        <button class="show-comments-btn" data-post-id="">Xem comments</button>
-        <div class="comments-container" data-post-id=""></div>`
+        <p class="post-author">Tác giả: <span class="author-name">${post.userId}</span></p>
+        <button class="show-comments-btn" data-post-id="${post.id}">Xem comments</button>
+        <div class="comments-container" data-post-id="${post.id}">
+            <!-- Comments sẽ được load động -->
+        </div>
+    </div>`
     }).join("");
+
+    setTimeout(() => {
+        const showCommentBtns = $$(`.show-comments-btn`);
+        showCommentBtns.forEach(btn => {
+            btn.addEventListener("click", handleShowComment);
+        });
+    });
 };
 
-function renderComment(data) {
-    commentItem.innerHTML = data.map(comment => {
-        return `<div class="comment-author">${comment.name}</div>
-        <div class="comment-email">${comment.email}</div>
-        <div class="comment-body">${comment.body}</div>`
-    }).join("");
+function renderComment(data, postId) {
+    const commentsContainer = $(`.comments-container[data-post-id="${postId}"]`);
+
+    if (commentsContainer) {
+        commentsContainer.innerHTML = data.map(comment => {
+            return `
+        <div class="comment-item">
+            <div class="comment-author">${comment.name}</div>
+            <div class="comment-email">${comment.email}</div>
+            <div class="comment-body">${comment.body}</div>
+        </div>`
+        }).join("");
+    }
 }
 
 function handleShowPost() {
@@ -118,16 +133,36 @@ function handleShowPost() {
     });
 }
 
+function handleShowComment(e) {
+    const postId = e.target.dataset.postId;
+    const commentsContainer = $(`.comments-container[data-post-id="${postId}"]`);
+
+    // Kiểm tra xem comments đã được load chưa
+    if (commentsContainer && commentsContainer.innerHTML.trim() !== '') {
+        // Nếu đã có comments, ẩn/hiện
+        commentsContainer.style.display = commentsContainer.style.display === 'none' ? 'block' : 'none';
+        e.target.textContent = commentsContainer.style.display === 'none' ? 'Xem comments' : 'Ẩn comments';
+
+        sendRequest("GET", `https://jsonplaceholder.typicode.com/posts/${postId}/comments?_limit=3`, (data) => {
+            renderComment(data, postId);
+        });
+        return;
+    }
+}
+
+// Khi click xem thêm sẽ có 3 post nữa hiện ra
+let numberOfPost = 5;
+loadMorePostBtn.addEventListener("click", () => {
+    numberOfPost += 3;
+
+    sendRequest("get", `https://jsonplaceholder.typicode.com/posts?_limit=${numberOfPost}`, (data) => {
+        renderPost(data);
+    });
+})
+
+// Hiển thị 5 post ngay khi tải trang
 handleShowPost();
 
-function handleShowComment() {
-    // const postId = ...
-    sendRequest("get", `https://https://jsonplaceholder.typicode.com/posts/${postId}/comments`, (data) => {
-        renderComment(data);
-    });
-};
-
-showCommentBtn.addEventListener("click", handleShowComment);
 
 
 
