@@ -163,6 +163,120 @@ loadMorePostBtn.addEventListener("click", () => {
 // Hiển thị 5 post ngay khi tải trang
 handleShowPost();
 
+// Element bài 3
+const todoList = $(".todo-list");
+const loadTodoBtn = $("#load-todos-btn");
+const todoUserIdInput = $("#todo-user-id-input");
+
+const totalTodos = $("#total-todos");
+const completedTodos = $("#completed-todos");
+const incompleteTodos = $("#incomplete-todos");
+
+function renderToDoList(data, userId) {
+    const user = data.find(u => u.userId == userId);
+
+    if (!user) {
+        $("#todos-error").style.display = "block";
+        $("#todos-error").innerHTML = `<p id="user-error-text">Không tìm thấy user với ID: ${userId}</p>`;
+
+        setTimeout(() => {
+            $("#todos-error").style.display = "none";
+        }, 2000);
+        return;
+    }
+
+    // Render todo list
+    todoList.innerHTML = data.map(item => {
+        return `<div class="todo-item ${item.completed ? "completed" : "incomplete"} " data-todo-id="${userId}" data-completed="">
+                        <div class="todo-checkbox"></div>
+                        <div class="todo-text">${item.title}</div>
+                    </div>`
+    }).join("");
 
 
+    // Hiển thị tổng số Todos
+    showTotalTodos(data);
 
+    // Hiển thị số Todos đã hoàn thành và chưa hoàn thành
+    showTodosProgress(data);
+}
+
+function showTotalTodos(data) {
+    let count = 0;
+    for (const index in data) {
+        count++;
+    }
+
+    totalTodos.innerText = count;
+    return;
+}
+
+function showTodosProgress(data) {
+    let count_todoCompleted = 0;
+    let count_todoIncomplete = 0;
+    for (let index in data) {
+        if (data[index].completed) {
+            count_todoCompleted++;
+            completedTodos.innerText = count_todoCompleted;
+        } else {
+            count_todoIncomplete++;
+            incompleteTodos.innerText = count_todoIncomplete;
+        }
+    }
+    return;
+}
+
+function handleLoadTodoByUserId() {
+    const userId = Number(todoUserIdInput.value);
+
+    // Kiểm tra nếu lỗi thì thông báo
+    if (!userId) {
+        $("#todos-error").style.display = "block";
+        $("#todos-error").innerHTML = `<p id="todos-error-text">Vui lòng nhập UserID cần tìm từ 1-10</p>`
+
+        setTimeout(() => {
+            $("#todos-error").style.display = "none";
+        }, 2000)
+
+        return;
+    };
+
+    // Không lỗi thì render
+    sendRequest("GET", `https://jsonplaceholder.typicode.com/users/${userId}/todos`, (data) => {
+        renderToDoList(data, userId);
+    });
+
+    return;
+};
+
+loadTodoBtn.addEventListener("click", handleLoadTodoByUserId);
+
+$("#filter-all").addEventListener("click", function () {
+    const userId = Number(todoUserIdInput.value);
+    this.classList.add("active");
+    $("#filter-completed").classList.remove("active");
+    $("#filter-incomplete").classList.remove("active");
+    sendRequest("GET", `https://jsonplaceholder.typicode.com/users/${userId}/todos`, (data) => {
+        renderToDoList(data, userId);
+    });
+});
+
+$("#filter-completed").addEventListener("click", function () {
+    const userId = Number(todoUserIdInput.value);
+    this.classList.add("active");
+    $("#filter-all").classList.remove("active");
+    $("#filter-incomplete").classList.remove("active");
+    sendRequest("GET", `https://jsonplaceholder.typicode.com/users/${userId}/todos?completed=true`, (data) => {
+        renderToDoList(data, userId);
+    });
+})
+
+$("#filter-incomplete").addEventListener("click", function () {
+    const userId = Number(todoUserIdInput.value);
+    this.classList.add("active");
+    $("#filter-completed").classList.remove("active");
+    $("#filter-all").classList.remove("active");
+    sendRequest("GET", `https://jsonplaceholder.typicode.com/users/${userId}/todos?completed=false`, (data) => {
+        renderToDoList(data, userId);
+    });
+})
