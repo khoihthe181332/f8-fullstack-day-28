@@ -161,7 +161,7 @@ loadMorePostBtn.addEventListener("click", () => {
 })
 
 // Hiển thị 5 post ngay khi tải trang
-// handleShowPost();
+handleShowPost();
 
 // Element bài 3
 const todoList = $(".todo-list");
