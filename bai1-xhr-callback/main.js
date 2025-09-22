@@ -80,7 +80,10 @@ function handleSearchUserByID() {
         return;
     }
 
+    $("#user-loading").style.display = "block"
+
     sendRequest("GET", "https://jsonplaceholder.typicode.com/users", (data) => {
+        $("#user-loading").style.display = "none"
         renderUser(data, userID);
     });
 }
@@ -109,7 +112,7 @@ function renderPost(data) {
         showCommentBtns.forEach(btn => {
             btn.addEventListener("click", handleShowComment);
         });
-    });
+    }, 0);
 };
 
 function renderComment(data, postId) {
@@ -128,7 +131,9 @@ function renderComment(data, postId) {
 }
 
 function handleShowPost() {
+    $("#posts-loading").style.display = "block";
     sendRequest("get", "https://jsonplaceholder.typicode.com/posts?_limit=5", (data) => {
+        $("#posts-loading").style.display = "none"
         renderPost(data);
     });
 }
@@ -154,8 +159,10 @@ function handleShowComment(e) {
 let numberOfPost = 5;
 loadMorePostBtn.addEventListener("click", () => {
     numberOfPost += 3;
+    $("#posts-loading").style.display = "block"
 
     sendRequest("get", `https://jsonplaceholder.typicode.com/posts?_limit=${numberOfPost}`, (data) => {
+        $("#posts-loading").style.display = "none"
         renderPost(data);
     });
 })
@@ -244,9 +251,12 @@ function handleLoadTodoByUserId() {
         return;
     };
 
+    $("#todos-loading").style.display = "block";
+
     // Không lỗi thì render
     todoList.style.display = "grid";
     sendRequest("GET", `https://jsonplaceholder.typicode.com/users/${userId}/todos`, (data) => {
+        $("#todos-loading").style.display = "none"
         renderToDoList(data, userId);
     });
 
